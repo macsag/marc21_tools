@@ -71,7 +71,7 @@ def do_slownika(fname, ident, pole_marc, use_normalizacja=True):
     logging.info('Przetworzono %s rekordy/ów z pliku %s', licznik, fname)
     return dict_out
 
-def szukaj_konfliktu(fname1, fname2, ident1, ident2, pole_marc, csv_out='raport-csv.csv'):
+def szukaj_konfliktu(fname1='authorities-all.mrc', fname2='wzorcowe.mrc', ident1='001', ident2='035', pole_marc='', csv_out='raport-csv.csv'):
     #główna funkcja: porównuje rekordy i szuka konfliktów
 
     dict1 = do_slownika(fname1, ident1, pole_marc)
@@ -101,7 +101,7 @@ def szukaj_konfliktu(fname1, fname2, ident1, ident2, pole_marc, csv_out='raport-
 
 def do_csv(fnameout, raport):
     with open(fnameout, 'w', encoding='utf-8', newline='') as fp:
-        w = csv.writer(fp)
+        w = csv.writer(fp, dialect='excel')
         w.writerows(raport.items())
 
 def do_marc(fname_in, fname_out, raport):
