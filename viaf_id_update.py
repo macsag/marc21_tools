@@ -14,7 +14,7 @@ def load_and_select_from_viaf(viaf_input_file, data_dump=False):
                     selected_viaf_ids.append((local.split('|')[1][:-1], viaf))
 
     if data_dump:
-        dump_to_tsv(selected_viaf_ids, 'selected_viaf.tsv')
+        dump_to_tsv(selected_viaf_ids, 'viup_selected_viaf.tsv')
 
     return selected_viaf_ids
 
@@ -30,7 +30,8 @@ def load_and_select_from_catalogue(catalogue_input_file, data_dump=False):
                 selected_local_ids[record.get_fields('001')[0].value()] = record.get_fields('024')[0].value()[:-4]
 
     if data_dump:
-        dump_to_tsv(selected_local_ids, 'selected_local.tsv')
+        #todo
+        dump_to_tsv(selected_local_ids, 'viup_selected_local.tsv')
 
     return selected_local_ids
 
@@ -41,9 +42,10 @@ def catalogue_lookup(list_to_check, catalogue):
 
     for item in tqdm(list_to_check, desc='Sprawdzam w API'):
         if item[0] not in catalogue:
+            item = ('001  ' + item[0], '024 7' + item[1] + '|2viaf', '996  .' + item[0])
             list_to_update.append(item)
 
-    dump_to_tsv(list_to_update, 'viaf_id_to_update.tsv')
+    dump_to_tsv(list_to_update, 'viup_to_update.tsv')
 
 
 def dump_to_tsv(data_to_dump, output_file):
@@ -63,8 +65,9 @@ def make_marc_file(data):
                 out = open(fnameout, 'ab')
                 out.write(record.as_marc())
                 out.close()
+    #todo
 
 
 loaded_from_viaf = load_and_select_from_viaf('viaf-20170806-links.txt')
-loaded_from_catalogue = load_and_select_from_catalogue('authorities-all.mrc')
+loaded_from_catalogue = load_and_select_from_catalogue('authorities-all.marc')
 catalogue_lookup(loaded_from_viaf, loaded_from_catalogue)
