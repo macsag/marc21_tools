@@ -76,4 +76,4 @@ if __name__ == '__main__':
 
     loaded_from_viaf = load_and_select_from_viaf(viaf_file)
     loaded_from_catalogue = load_and_select_from_catalogue(loc_file)
-    catalogue_lookup(loaded_from_viaf, loaded_from_catalogue[0], loaded_from_catalogue[1])
+    catalogue_lookup(loaded_from_viaf, loaded_from_catalogue[0], loaded_from_catalogue[1], out)
