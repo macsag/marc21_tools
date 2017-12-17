@@ -22,30 +22,34 @@ def load_and_select_from_viaf(viaf_input_file, siglum='NLP', data_dump=False):
 
 
 def load_and_select_from_catalogue(catalogue_input_file):
-    # creates 2 dictionaries: with all local ids and selected local ids
+    # creates 2 dictionaries: with all local ids and selected local ids (with viaf id)
 
     selected_local_ids = {}
     all_ids = {}
 
     with open(catalogue_input_file, 'rb') as fp:
         rdr = MARCReader(fp, to_unicode=True, force_utf8=True, utf8_handling='ignore')
-        for rcd in tqdm(rdr, total=2200000, desc='Pobieram dane z katalogu'):
-            try:
-                loc_id = rcd.get_fields('001')[0].value()
-            except IndexError:
-                continue
-            if rcd.get_fields('024'):
-                selected_local_ids[loc_id] = rcd.get_fields('024')[0].value()[:-4]
-                all_ids[loc_id] = None
-            else:
-                all_ids[loc_id] = None
+        try:
+            for rcd in tqdm(rdr, desc='Pobieram dane z katalogu'):
+                try:
+                    loc_id = rcd.get_fields('001')[0].value()
+                except IndexError:
+                    continue
+                if rcd.get_fields('024'):
+                    selected_local_ids[loc_id] = rcd.get_fields('024')[0].value()[:-4]
+                    all_ids[loc_id] = None
+                else:
+                    all_ids[loc_id] = None
+        except NoFieldsFound as e:
+            print(e)
 
-    result = [all_ids, selected_local_ids]
+    result = (all_ids, selected_local_ids)
 
     return result
 
 
 def catalogue_lookup(list_to_check, all_ids, selected_ids, out_file):
+    # checks if loc_id from viaf exists in local catalogue; if exists and lacks viaf id, adds it and dumps to tsv
 
     list_to_update = []
     list_of_invalid_ids = []
@@ -70,9 +74,9 @@ def dump_to_tsv(data_to_dump, output_file):
 
 if __name__ == '__main__':
 
-    viaf_file = 'viaf-20171001-links.txt'
+    viaf_file = 'viaf-20171106-links.txt'
     loc_file = 'authorities-all.marc'
-    out = 'viup_to_update_09102017.tsv'
+    out = 'viup_to_update_10112017.tsv'
 
     loaded_from_viaf = load_and_select_from_viaf(viaf_file)
     loaded_from_catalogue = load_and_select_from_catalogue(loc_file)
