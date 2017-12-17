@@ -20,45 +20,22 @@ def scraper_main(start_url):
     dict = {}
     count = 0
     for link in links:
-        if count < 30:
-            link = 'https://czarne.com.pl' + link.get('href')
-            response = requests.get(link).text
-            print('Getting: ' + link)
-            soup = BeautifulSoup(response, 'html.parser')
-            try:
-                isbn = soup.find_all(string=re.compile('83'))[0]
-            except IndexError as e:
-                print('Książka nie ma isbnu: ' + link)
-                continue
-            isbn = normalize_isbn(isbn)
-            abstract = soup.find_all('div', class_='description')[0]
-            abstract = abstract.get_text().replace('\xa0', ' ').replace('\n', ' ').replace('\r', ' ').replace('  ', ' ')
-            print(abstract)
-            if abstract.startswith('Przekład'):
-                count2 = 0
-                c_prev = ''
-                c_prev_prev = ''
-                for c in abstract:
-                    if c.isupper() and c_prev.islower():
-                        break
-                    elif c.isupper() and c_prev.isspace() and c_prev_prev.islower:
-                        break
-                    else:
-                        if count == 0:
-                            count2 += 1
-                            c_prev = c
-                        else:
-                            count2 += 1
-                            c_prev = c
-                            c_prev_prev = c_prev
-                dict[isbn] = [link, abstract[count2:]]
-            else:
-                dict[isbn] = [link, abstract]
-            print(abstract[count2:])
-            time.sleep(1)
-            count += 1
-        else:
-            break
+        link = 'https://czarne.com.pl' + link.get('href')
+        response = requests.get(link).text
+        print('Getting: ' + link)
+        soup = BeautifulSoup(response, 'html.parser')
+        try:
+            isbn = soup.find_all(string=re.compile('83'))[0]
+        except IndexError:
+            print('Książka nie ma isbnu: ' + link)
+            continue
+        isbn = normalize_isbn(isbn)
+        abstract = soup.find_all('div', class_='description')[0]
+        abstract = abstract.get_text().replace('\xa0', ' ').replace('\n', ' ').replace('\r', ' ').replace('  ', ' ')
+        print(abstract)
+        dict[isbn] = [link, abstract]
+        time.sleep(1)
+        count += 1
     return dict
 
 def normalize_isbn(isbn):
