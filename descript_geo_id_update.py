@@ -57,7 +57,7 @@ class GeoAuthority(object):
         sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
 
         sparql.setQuery("""
-            SELECT distinct ?item ?geonames ?viaf ?instofLabel ?adminunitLabel ?countryLabel WHERE{
+            SELECT distinct ?item ?geonames ?viaf ?instof ?instofLabel ?adminunitLabel ?countryLabel WHERE{
                 ?item ?label \"""" + self.short_name + """\"@pl.
                 OPTIONAL { ?item wdt:P1566 ?geonames. }
                 OPTIONAL { ?item wdt:P214 ?viaf. }
@@ -95,11 +95,11 @@ class GeoAuthority(object):
 
         if len(self.wikidata_entities) > 1:
             winners = compare_entities_and_calculate_score(self)
-            if winners[0] == 1:
-                add_wiki_attr(self, self.wikidata_entities[winners[1][0]])
-            if winners[0] == 0:
+            if winners[0] == 1: # single winner
+                add_wiki_attr(self, self.wikidata_entities[winners[1][0][0]])
+            if winners[0] == 0: # no winner
                 self.wikidata_entities_to_disambiguate = (0, self.wikidata_entities)
-            if winners[0] == 2:
+            if winners[0] == 2: # tie
                 ent = []
                 for e in winners[1]:
                     ent.append(self.wikidata_entities[e[0]])
@@ -135,9 +135,8 @@ class GeoAuthority(object):
                     except IndexError:
                         logging.error('Błąd indeksowania. Brak podpola |a w rekordzie nr: {}'.format(local_id))
                         continue
-                    if natural_lang_id not in authorities:
+                    if natural_lang_id not in authorities:  # only headings without subdivisions are selected + dedup
                         authorities[natural_lang_id] = GeoAuthority(local_id, natural_lang_id, geo_auth)
-                        print(i)
                         i += 1
         return authorities
 
@@ -182,12 +181,21 @@ def do_apposition_heuristics(obj):
 
 
 def do_short_name_heuristics(obj):
-    pass
+    if 'Gmina' in obj.short_name:
+        obj.type = 'Gmina'
+        logging.debug('Dodano atrybut na podstawie "do_short_name_heuristics": {}'.format(obj.type))
+    if 'Województwo' in obj.short_name:
+        obj.type = 'Województwo'
+        logging.debug('Dodano atrybut na podstawie "do_short_name_heuristics": {}'.format(obj.type))
+    if 'Powiat' in obj.short_name:
+        obj.type = 'Powiat'
+        logging.debug('Dodano atrybut na podstawie "do_short_name_heuristics": {}'.format(obj.type))
 
 
 def compare_entities_and_calculate_score(obj):
     # analyses the available metadata and disambiguates entities
     # compares natural language data with Wikidata properties and calculates the score (the more, the better)
+    wd_to_dbn_lookup = {'Stolice': ['Q5119'], 'Miasta': ['Q515'], 'Wsie': ['Q3558970', 'Q532'], 'Rzeki': ['Q4022']}
 
     final_scores = []
     for no, entity in enumerate(obj.wikidata_entities):
@@ -196,6 +204,13 @@ def compare_entities_and_calculate_score(obj):
             if obj.type:
                 if obj.type in entity['instofLabel']['value']:
                     score += 1
+            if obj.attribs_368:
+                for attribute in obj.attribs_368:
+                    for ident in wd_to_dbn_lookup[attribute]:
+                        if ident in entity['instof']['value']:
+                            score += 1
+                            logging.debug("Dodano plus z lookup.")
+                            break
             if obj.gm:
                 if obj.gm in entity['adminunitLabel']['value'] or obj.gm[6:] in entity['adminunitLabel']['value']:
                     score += 1
@@ -214,19 +229,25 @@ def compare_entities_and_calculate_score(obj):
     final_scores.sort(key=lambda sc_value: sc_value[1], reverse=True)
     logging.debug(final_scores)
     first_score = final_scores[0][1]
+
+    # no result
     if first_score == 0:
         return 0, final_scores
+
+    # score > 0
     if first_score != 0:
-        tie = []
-        for no, sc in enumerate(final_scores[1:]):
-            if sc[1] == first_score:
-                tie.append(sc)
+        winners = [final_scores[0]]
+        print(winners)
+        for no, sc in enumerate(final_scores[1:]): # compare scores to each other using loop with offset
+            if sc[1] == final_scores[no][1]:
+                winners.append(sc)
+                print(winners)
             else:
-                if no == 0:
-                    print(list(final_scores[0]))
-                    return 1, list(final_scores[0])
-                if no > 0:
-                    return 2, tie
+                break
+        if len(winners) > 1:
+            return 2, winners
+        else:
+            return 1, winners
 
 
 def add_wiki_attr(obj, entity):
@@ -268,7 +289,7 @@ def main_workflow(data):
         v.get_entities_from_wikidata()
         v.add_ids_if_one_entity()
         v.add_ids_if_more_entities()
-        print(v.short_name, v.type, v.country_or_settlement,
+        print(v.nat_lang_id, v.short_name, v.type, v.country_or_settlement,
               v.woj, v.pow, v.gm, v.other_admin_units, v.wikidata_id, v.geonames_id, v.viaf_id, v.attribs_368)
 
 
@@ -276,8 +297,6 @@ if __name__ == '__main__':
 
     logging.root.addHandler(logging.StreamHandler(sys.stdout))
     logging.root.setLevel(level=logging.DEBUG)
-
-    wd_to_dbn_lookup = {'Stolice': 'Q5119', 'Miasta': 'Q515'}
 
     geo_authorities = GeoAuthority.get_geo_auth('authorities-all.marc', limit=500)
     main_workflow(geo_authorities)
