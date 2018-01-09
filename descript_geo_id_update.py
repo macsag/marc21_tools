@@ -195,7 +195,12 @@ def do_short_name_heuristics(obj):
 def compare_entities_and_calculate_score(obj):
     # analyses the available metadata and disambiguates entities
     # compares natural language data with Wikidata properties and calculates the score (the more, the better)
-    wd_to_dbn_lookup = {'Stolice': ['Q5119'], 'Miasta': ['Q515'], 'Wsie': ['Q3558970', 'Q532'], 'Rzeki': ['Q4022']}
+    wd_to_dbn_lookup = {'Stolice': ['Q5119'], 'Miasta': ['Q515'], 'Wsie': ['Q3558970', 'Q532'], 'Rzeki': ['Q4022'],
+                        'Gminy': ['Q3491915', 'Q15334', 'Q15284', 'Q3504085', 'Q2616791'], 'Powiaty': ['Q247073'],
+                        'Części miast': ['Q1434401', 'Q4286337'], 'Obszary chronione': ['Q473972'],
+                        'Szczyty górskie': ['Q8502'], 'Dzielnice': ['Q1434401', 'Q4286337'],
+                        'Województwa': ['Q150093'], 'Wyspy': ['Q23442'], 'Rezerwaty przyrody': ['Q9309832', 'Q179049'],
+                        'Jeziora': ['Q23397'], 'Państwa': ['Q6256']}
 
     final_scores = []
     for no, entity in enumerate(obj.wikidata_entities):
@@ -209,7 +214,7 @@ def compare_entities_and_calculate_score(obj):
                     for ident in wd_to_dbn_lookup[attribute]:
                         if ident in entity['instof']['value']:
                             score += 1
-                            logging.debug("Dodano plus z lookup.")
+                            logging.debug("Dodano punkt na podstawie instOfWikidata: {}".format(ident))
                             break
             if obj.gm:
                 if obj.gm in entity['adminunitLabel']['value'] or obj.gm[6:] in entity['adminunitLabel']['value']:
