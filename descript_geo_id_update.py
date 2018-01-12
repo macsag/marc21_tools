@@ -294,8 +294,10 @@ def main_workflow(data):
         v.get_entities_from_wikidata()
         v.add_ids_if_one_entity()
         v.add_ids_if_more_entities()
-        print(v.nat_lang_id, v.short_name, v.type, v.country_or_settlement,
-              v.woj, v.pow, v.gm, v.other_admin_units, v.wikidata_id, v.geonames_id, v.viaf_id, v.attribs_368)
+        output_preview = [v.nat_lang_id, v.short_name, v.type, v.country_or_settlement,
+              v.woj, v.pow, v.gm, v.other_admin_units, v.wikidata_id, v.geonames_id, v.viaf_id, v.attribs_368]
+        logging.debug(output_preview)
+
 
 
 if __name__ == '__main__':
