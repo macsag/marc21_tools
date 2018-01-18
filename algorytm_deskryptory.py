@@ -5,9 +5,28 @@ import logging
 Algorytm importu deskryptorów do bazy danych OMNIS:
 
 wersja: 0.1
+
+wariant A: import z bazy danych Biblioteki Narodowej
+
+1. sprawdź typ rekordu (czy w rekordzie obecne konkretne pole 1XX?)
+    100 i brak podpola |t - deskryptor osobowy
+    110 i brak podpola |t - deskryptor korporatywny
+    111 i brak podpola |t - deskryptor imprezy
+    150 - deskryptor przedmiotowy
+    151 - deskryptor geograficzny
+    155 - deskryptor formy/rodzaju/gatunku
+2. wyklucz hasła przedmiotowe rozwinięte
+    jeśli w polu 1XX występuje |x lub |y lub |z pomiń rekord
+3. sprawdź, czy rekord jest już w bazie
+    sprawdź po identyfikatorze BN (descrNlpId)
+    jeśli jest w bazie, zaktualizuj rekord (idź do 3 i 4B)
+    jeśli brak, utwórz rekord (idź do 3 i 4A)
+3. skonwertuj rekord
+4A. dodaj rekord do bazy danych
+4B. zaktualizuj rekord
 """
 
-#  wariant A: import z bazy danych Biblioteki Narodowej
+# wariant A: import z bazy danych Biblioteki Narodowej
 
 def importuj_deskryptory(baza_bn):
     initial_check_fields = ['100', '110', '111', '130', '150', '151', '155']
