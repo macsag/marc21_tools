@@ -14,7 +14,7 @@ wariant A: import z bazy danych Biblioteki Narodowej /wersja wyłącznie dla ksi
     0.1 sprawdź, czy rekord jest typu 'Książki'
         0.1.1 jeśli w którymś polu 380 (pole powtarzalne) występuje termin 'Książki' idź do 0.2, jeśli nie pomiń rekord
     0.2 wyklucz rekordy skomplikowane i zawierające dzieła współwydane
-        0.2.1 jeśli w rekordzie występuje którekolwiek z poniższych pól|podpól, pomiń rekord, jeśli nie idź do 1
+        0.2.1 jeśli w rekordzie występuje którekolwiek z poniższych pól|podpól, pomiń rekord, jeśli nie idź do 1A
             130
             730
             240
@@ -23,10 +23,18 @@ wariant A: import z bazy danych Biblioteki Narodowej /wersja wyłącznie dla ksi
             710 i występuje podpole |t
             711 i występuje podpole |t
 
-1. sprawdź, czy rekord jest już w bazie OMNIS
+1A. sprawdź, czy rekord materializacji jest już w bazie OMNIS
     sprawdź po identyfikatorze BN (mNlpId)
     jeśli jest w bazie, zaktualizuj encje związane z rekordem (idź do 2 i 3B)
-    jeśli brak, utwórz encje związane z rekordem (idź do 2 i 3A)
+    jeśli brak, sprawdź czy w bazie są związane z nim encje (dzieło lub realizacja) (idź do 1B)
+
+1B. sprawdź, czy w bazie są związane z rekordem materializacji encje (dzieło lub realizacja)
+    1B.0 [opcjonalnie] dokonaj wstępnej dekompozycji rekordu, aby pobrać metadane potrzebne do matchowania
+    1B.1 sprawdź, czy w bazie jest już dane dzieło
+        1B.1.1 sprawdź, czy w bazie jest już dzieło pod danym tytułem oryginału
+         (246|a|b jeśli  vs. wspólny indeks tytułów)
+        1B1.2 sprawdź, czy w bazie jest już dzieło
+        
     
 2. 
 
